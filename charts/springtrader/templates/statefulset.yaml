@@ -19,6 +19,9 @@ spec:
         image: alpine
         command: ["/bin/sh","-c"]
         args: ["mkdir -p /sqlf-data/locator1 /sqlf-data/server1"]
+        volumeMounts:
+        - mountPath: /sqlf-data
+          name: sqlf-data
 
       containers:
       - name: sqlflocator
@@ -41,6 +44,9 @@ spec:
             cpu: "256m"
         strategy: 
           type: recreate
+        volumeMounts:
+        - mountPath: /sqlf-data
+          name: sqlf-data
         readinessProbe:
           exec:
             command:
@@ -66,3 +72,16 @@ spec:
           limits:
             memory: "384Mi"
             cpu: "256m"
+        volumeMounts:
+        - mountPath: /sqlf-data
+          name: sqlf-data
+
+  volumeClaimTemplates:
+  - metadata:
+      name: sqlf-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.storageClassName | default "gp2" }}
+      resources:
+        requests:
+          storage: "2Gi"
