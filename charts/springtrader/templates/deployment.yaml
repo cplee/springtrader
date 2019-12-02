@@ -35,6 +35,18 @@ spec:
         env:
         - name: GROOVY_HOME
           value: '/usr/bin'
+        livenessProbe:
+          httpGet:
+            path: /spring-nanotrader-web/
+            port: 8080
+          initialDelaySeconds: 90
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /spring-nanotrader-web/
+            port: 8080
+          initialDelaySeconds: 90
+          timeoutSeconds: 5
       - name: rabbitmq
         image: rabbitmq
         resources:
