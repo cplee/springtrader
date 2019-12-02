@@ -1,0 +1,46 @@
+apiVersion: skaffold/v1beta12
+kind: Config
+
+# build
+build:
+  artifacts:
+  - image: springtrader
+    docker:
+      target: runner
+  - image: sqlfdb
+    docker:
+      target: sqlfdb
+
+# deploy
+deploy:
+  helm:
+    releases:
+      - name: springtrader 
+        chartPath: ./charts/springtrader
+        values:
+          image: springtrader 
+          sqlfdb: sqlfdb 
+        setValueTemplates:
+          istioDomain: "{{.ISTIO_DOMAIN}}"
+
+# use env vars for image tag inside CodeBuild
+profiles:
+- name: codebuild 
+  activation:
+  - env: CODEBUILD_BUILD_SUCCEEDING=1
+  patches:
+  - op: add
+    path: /build/tagPolicy
+    value:
+      envTemplate:
+        template: "{{.IMAGE_NAME}}:{{.CODEBUILD_RESOLVED_SOURCE_VERSION}}"
+        
+# override storage class when running in microk8s
+- name: microk8s
+  activation:
+  - kubeContext: microk8s
+  patches:
+  - op: add
+    path: /deploy/helm/releases/0/setValues
+    value: 
+      storageClassName: microk8s-hostpath
